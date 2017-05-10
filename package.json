@@ -1,0 +1,13 @@
+{
+  "name": "pequod-server",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "engines": {
+    "node": "6.10.0"
+  }
+}
