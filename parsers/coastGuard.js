@@ -16,19 +16,6 @@ const dms2dec = require('dms2dec')
 
 const LNMURL = 'https://www.navcen.uscg.gov/?Do=lnmXmlDownload';
 
-request(LNMURL)
-  .then(xml => parseString(xml))
-  .then(json => {
-    const { LNM: { DISCREPANCIES: [{ DISCREPANCY }], TEMPORARY_CHANGES: [{ TEMPORARY_CHANGE }] } } = json;
-    const discrepancies = parseArray(DISCREPANCY, 'DISCREPANCY');
-    const tempChanges = parseArray(TEMPORARY_CHANGE, 'TEMPCHANGE');
-    const points = [...discrepancies, ...tempChanges];
-
-    console.log(JSON.stringify(points, null, 2));
-    console.log(`${points.length} points parsed`);
-  })
-  .catch(err => console.error('parsing failed', err))
-
 /**
  * Here's the meat of the parsing. After converting from XML to JSON we've got
  * crazy looking objects. The goal is to extract the properties we care about
@@ -67,3 +54,24 @@ const parseCoordinates = (latitude, longitude) => {
     coordinates: dms2dec(latDMS, latReference, longDMS, longReference).reverse(),
   };
 }
+
+/**
+ * Have our default export function be a method that returns a promise resolving
+ * with the array of discrepancies and tempChanges as parsed by the above parsers.
+ * So, in order, we fetch the XML, convert it to JSON, extract the bits we care
+ * about, and resolve into one uber array.
+ */
+const parseCoastGuard = () =>
+  request(LNMURL)
+    .then(xml => parseString(xml))
+    .then(json => {
+      const { LNM: { DISCREPANCIES: [{ DISCREPANCY }], TEMPORARY_CHANGES: [{ TEMPORARY_CHANGE }] } } = json;
+      const discrepancies = parseArray(DISCREPANCY, 'DISCREPANCY');
+      const tempChanges = parseArray(TEMPORARY_CHANGE, 'TEMPCHANGE');
+      const points = [...discrepancies, ...tempChanges];
+      console.log(`${points.length} points parsed`);
+      return points;
+    })
+    .catch(err => console.error('parsing failed', err));
+
+module.exports = parseCoastGuard;
