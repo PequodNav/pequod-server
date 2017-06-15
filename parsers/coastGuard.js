@@ -23,13 +23,13 @@ const LNMURL = 'https://www.navcen.uscg.gov/?Do=lnmXmlDownload';
  */
 const parseArray = (array, pointType) => array.map(point => {
   const {
-    [`${pointType}_UNIQUE_IDENTIFIER`]: [id],
+    [`${pointType}_UNIQUE_IDENTIFIER`]: [_id],
     STATUS: [{ SUMMARY: [summary] }],
     AID: [{ AID_NAME: [aidName], TYPE: [type], ASSIGNED_LATITUDE: [latitude] = [], ASSIGNED_LONGITUDE: [longitude] = [] }]
   } = point;
   if (latitude && longitude) {
     return {
-      id,
+      _id,
       aidName,
       type,
       lnmSource: pointType,
@@ -61,10 +61,15 @@ const parseCoordinates = (latitude, longitude) => {
  * So, in order, we fetch the XML, convert it to JSON, extract the bits we care
  * about, and resolve into one uber array.
  */
-const parseCoastGuard = () =>
-  request(LNMURL)
-    .then(xml => parseString(xml))
+const parseCoastGuard = () => {
+  console.log('fetching coast guard data');
+  return request(LNMURL)
+    .then(xml => {
+      console.log('received xml from coast guard, parsing into json');
+      return parseString(xml)
+    })
     .then(json => {
+      console.log('converted xml to json, parsing into points');
       const { LNM: { DISCREPANCIES: [{ DISCREPANCY }], TEMPORARY_CHANGES: [{ TEMPORARY_CHANGE }] } } = json;
       const discrepancies = parseArray(DISCREPANCY, 'DISCREPANCY');
       const tempChanges = parseArray(TEMPORARY_CHANGE, 'TEMPCHANGE');
@@ -73,5 +78,6 @@ const parseCoastGuard = () =>
       return points;
     })
     .catch(err => console.error('parsing failed', err));
+}
 
 module.exports = parseCoastGuard;
