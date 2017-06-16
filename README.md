@@ -1,5 +1,10 @@
 # Pequod Server
 
+## Quick Links
+
+  - [AWS Elastic Beanstalk console](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/applications)
+  - [Mongo Atlas Console](https://cloud.mongodb.com/)
+
 ## Endpoints
 
 ### /points
