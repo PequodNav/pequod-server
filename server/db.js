@@ -13,12 +13,23 @@ mongoose.connect(process.env.MONGO_URI, { promiseLibrary: Promise });
 
 /** Our point schema. */
 const pointSchema = new Schema({
+  // all points have these
   _id: ObjectId,
   aidName: String,
-  type: String,
-  lnmSource: String,
-  summary: String,
   loc: Point,
+  lightListNumber: Number,
+  type: String,
+  source: String,
+
+  // only coast guard lnm points have these
+  summary: String,
+
+  // only weekly points have these
+  characteristic: String,
+  height: Number,
+  range: String,
+  remarks: String,
+  structure: String,
 });
 
 // initialize our index and model

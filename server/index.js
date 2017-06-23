@@ -2,8 +2,11 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const Promise = require('bluebird');
+const fs = require('fs');
 const { insertPoints, geospatialSearch, deletePoints } = require('./db');
-const parseCoastGuard = require('../parsers/coastGuard');
+const parseCoastGuardLNM = require('../parsers/coastGuardLNM');
+const parseCoastGuardWeekly = require('../parsers/coastGuardWeekly');
 
 const port = process.env.PORT || 3000;
 
@@ -25,12 +28,21 @@ app.listen(app.get('port'), () => {
 });
 
 // fetch all the coast guard points, and insert them into our database after
-// removing what's already there (def a better way to do this using smart updates
-// based on ids and whatnot)
+// removing what's already there (def a better way to do this using smart
+// updates based on ids and whatnot)
 const updatePoints = () =>
   deletePoints()
-    .then(() => parseCoastGuard())
-    .then(points => insertPoints(points));
+    .then(() => Promise.join(
+      parseCoastGuardLNM(),
+      parseCoastGuardWeekly(),
+      (lnmPoints, weeklyPoints) => {
+        const pointsToAdd = [...lnmPoints, ...weeklyPoints];
+        console.log(`inserting ${pointsToAdd.length} points`);
+        return insertPoints(pointsToAdd);
+      }
+    ))
+    .then(() => console.log('we did it!'))
+    .catch(e => console.error('we didnt do it!', e));
 
 // update the points now, and fetch new ones every 24 hours
 updatePoints();

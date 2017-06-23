@@ -7,12 +7,12 @@
  *   - ASSIGNED_LATITUDE
  *   - ASSIGNED_LONGITUDE
  *   - SUMMARY
+ *   - LIGHT_LIST_NUMBER
  */
-
 const request = require('request-promise');
 const Promise = require('bluebird');
 const parseString = Promise.promisify(require('xml2js').parseString);
-const dms2dec = require('dms2dec')
+const parseCoordinates = require('./parseCoordinates');
 
 const LNMURL = 'https://www.navcen.uscg.gov/?Do=lnmXmlDownload';
 
@@ -25,35 +25,20 @@ const parseArray = (array, pointType) => array.map(point => {
   const {
     [`${pointType}_UNIQUE_IDENTIFIER`]: [_id],
     STATUS: [{ SUMMARY: [summary] }],
-    AID: [{ AID_NAME: [aidName], TYPE: [type], ASSIGNED_LATITUDE: [latitude] = [], ASSIGNED_LONGITUDE: [longitude] = [] }]
+    AID: [{ AID_NAME: [aidName], TYPE: [type], ASSIGNED_LATITUDE: [latitude] = [], ASSIGNED_LONGITUDE: [longitude] = [], LIGHT_LIST_NUMBER: [lightListNumber] = []}]
   } = point;
   if (latitude && longitude) {
     return {
       _id,
       aidName,
       type,
-      lnmSource: pointType,
+      lightListNumber: lightListNumber && parseFloat(lightListNumber),
+      source: pointType,
       summary,
       loc: parseCoordinates(latitude, longitude),
     };
   }
 }).filter(parsedPoint => !!parsedPoint);
-
-/**
- * Latitude and longitude are of the format '41-15-22.980N' or '072-39-50.640W'
- * Return a GeoJSON formatted object
- */
-const parseCoordinates = (latitude, longitude) => {
-  const latReference = latitude[latitude.length - 1];
-  const longReference = longitude[longitude.length - 1];
-  const latDMS = latitude.substring(0, latitude.length - 1).split('-').map(string => parseFloat(string));
-  const longDMS = longitude.substring(0, longitude.length - 1).split('-').map(string => parseFloat(string));
-  return {
-    type: 'Point',
-    // GeoJSON stores coordinates in reversed order (longitude, latitude) so we reverse
-    coordinates: dms2dec(latDMS, latReference, longDMS, longReference).reverse(),
-  };
-}
 
 /**
  * Have our default export function be a method that returns a promise resolving
@@ -62,10 +47,10 @@ const parseCoordinates = (latitude, longitude) => {
  * about, and resolve into one uber array.
  */
 const parseCoastGuard = () => {
-  console.log('fetching coast guard data');
+  console.log(`fetching lnm data from ${LNMURL}`);
   return request(LNMURL)
     .then(xml => {
-      console.log('received xml from coast guard, parsing into json');
+      console.log('received xml for lnm, parsing into json');
       return parseString(xml)
     })
     .then(json => {
@@ -73,8 +58,8 @@ const parseCoastGuard = () => {
       const { LNM: { DISCREPANCIES: [{ DISCREPANCY }], TEMPORARY_CHANGES: [{ TEMPORARY_CHANGE }] } } = json;
       const discrepancies = parseArray(DISCREPANCY, 'DISCREPANCY');
       const tempChanges = parseArray(TEMPORARY_CHANGE, 'TEMPCHANGE');
-      const points = [...discrepancies, ...tempChanges];
-      console.log(`${points.length} points parsed`);
+      const points = [...discrepancies, ...tempChanges].filter(point => !!point.loc);
+      console.log(`${points.length} lnm points parsed`);
       return points;
     })
     .catch(err => console.error('parsing failed', err));
