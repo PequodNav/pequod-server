@@ -1,6 +1,7 @@
 node_modules
 *.log
 .env
+points.csv
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

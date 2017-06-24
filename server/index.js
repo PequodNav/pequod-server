@@ -3,7 +3,6 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const Promise = require('bluebird');
-const fs = require('fs');
 const { insertPoints, geospatialSearch, deletePoints } = require('./db');
 const parseCoastGuardLNM = require('../parsers/coastGuardLNM');
 const parseCoastGuardWeekly = require('../parsers/coastGuardWeekly');

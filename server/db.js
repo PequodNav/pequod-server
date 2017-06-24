@@ -47,6 +47,11 @@ const insertPoints = (points = []) => PointModel.insertMany(points);
 const deletePoints = () => PointModel.remove({});
 
 /**
+ * Get all points
+ */
+const getPoints = () => PointModel.find({});
+
+/**
  * Given a lat, lng, and optionally distance, and limit, perform a geospatialSearch
  * and return all relevant points.
  */
@@ -63,4 +68,5 @@ const geospatialSearch = (lat, lng, distance = DEFAULT_DISTANCE, limit = DEFAULT
 
 module.exports.insertPoints = insertPoints;
 module.exports.deletePoints = deletePoints;
+module.exports.getPoints = getPoints;
 module.exports.geospatialSearch = geospatialSearch;
