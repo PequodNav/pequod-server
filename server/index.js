@@ -44,5 +44,5 @@ const updatePoints = () =>
     .catch(e => console.error('we didnt do it!', e));
 
 // update the points now, and fetch new ones every 24 hours
-updatePoints();
-setInterval(() => updatePoints(), 24 * 60 * 60 * 1000);
+// updatePoints();
+// setInterval(() => updatePoints(), 24 * 60 * 60 * 1000);
