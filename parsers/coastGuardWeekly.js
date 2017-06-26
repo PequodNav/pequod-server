@@ -65,9 +65,9 @@ const parseCoastGuardFromURL = url => {
         lightListNumber: point.LLNR && point.LLNR[0] && parseFloat(point.LLNR[0]),
         height: point.Height && point.Height[0] && parseFloat(point.Height[0]),
         range: point.Range && point.Range[0] && parseFloat(point.Range[0]),
-        remarks: point.Remarks && point.Remarks[0],
         source: `weekly district ${point.District && point.District[0]}`,
         structure: point.Structure && point.Structure[0],
+        summary: point.Remarks && point.Remarks[0],
         loc: point[latitudeKey] && point[longitudeKey] && parseCoordinates(point[latitudeKey][0], point[longitudeKey][0]),
       })).filter(point => !!point.loc);
       console.log(`${points.length} points parsed for ${url}`);

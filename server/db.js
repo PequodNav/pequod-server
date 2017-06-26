@@ -20,15 +20,12 @@ const pointSchema = new Schema({
   lightListNumber: Number,
   type: String,
   source: String,
-
-  // only coast guard lnm points have these
   summary: String,
 
   // only weekly points have these
   characteristic: String,
   height: Number,
   range: String,
-  remarks: String,
   structure: String,
 });
 
