@@ -55,7 +55,7 @@ const getPoints = () => PointModel.find({});
  * Given a lat, lng, and optionally distance, and limit, perform a geospatialSearch
  * and return all relevant points.
  */
-const geospatialSearch = (lat, lng, distance = DEFAULT_DISTANCE, limit = DEFAULT_LIMIT) => {
+const searchNear = (lat, lng, distance = DEFAULT_DISTANCE, limit = DEFAULT_LIMIT) => {
   // approximately 3959 miles in the earth's radius
   const distanceInRadians = distance / 3959;
   return PointModel.find({
@@ -66,7 +66,24 @@ const geospatialSearch = (lat, lng, distance = DEFAULT_DISTANCE, limit = DEFAULT
   }, null, { limit });
 }
 
+/**
+ * Return points within a given coordinate system.
+ * Note: see mongo docs for what to do if polygon spans multiple hemispheres
+ */
+const searchWithin = coordinates =>
+  PointModel.find({
+    loc: {
+      $geoWithin: {
+        $geometry: {
+          type: 'Polygon',
+          coordinates,
+        }
+      }
+    }
+  });
+
 module.exports.insertPoints = insertPoints;
 module.exports.deletePoints = deletePoints;
 module.exports.getPoints = getPoints;
-module.exports.geospatialSearch = geospatialSearch;
+module.exports.searchNear = searchNear;
+module.exports.searchWithin = searchWithin;

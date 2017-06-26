@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const Promise = require('bluebird');
-const { insertPoints, geospatialSearch, deletePoints } = require('./db');
+const { insertPoints, deletePoints, searchNear, searchWithin } = require('./db');
 const parseCoastGuardLNM = require('../parsers/coastGuardLNM');
 const parseCoastGuardWeekly = require('../parsers/coastGuardWeekly');
 
@@ -14,11 +14,22 @@ const app = express();
 app.set('port', port);
 app.use(express.static(path.resolve(__dirname, '../public/')));
 
-/** endopoint for querying points in the database */
-app.get('/points', ({ query: { lat, lng, distance, limit } }, res) => {
-  geospatialSearch(parseFloat(lat), parseFloat(lng), distance && parseFloat(distance), limit && parseInt(limit))
+/** endopoint for querying points within a distance around a lat lng */
+app.get('/points/near', ({ query: { lat, lng, distance, limit } }, res) => {
+  searchNear(parseFloat(lat), parseFloat(lng), distance && parseFloat(distance), limit && parseInt(limit))
     .then(points => res.json(points))
     .catch(e => res.status(500).json(e));
+});
+
+/** endpoint for querying points within a coordinate set */
+app.get('/points/within', ({ query: { coordinates } }, res) => {
+  try {
+    searchWithin(JSON.parse(coordinates))
+      .then(points => res.json(points))
+      .catch(e => res.status(500).json(e));
+  } catch(e) {
+    res.status(400).send('bad coordinates');
+  }
 });
 
 /** Start her up, boys */
